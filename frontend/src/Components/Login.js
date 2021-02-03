@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react'
 import { Button, Card, CardBody, Form, FormGroup, Label, Input, Row, Col } from 'reactstrap'
 import axios from 'axios'
 import NavBar from '../Layouts/NavBar';
+import {store} from 'react-notifications-component'
 
 export default function Login() {
 
@@ -19,16 +20,69 @@ export default function Login() {
         ).then(response => {
             console.log(response)
             if(response.data.statusCode === 404){
-                alert("User Not Found")
+                store.addNotification({
+                    title: "Not Found",
+                    message: "User Not Found",
+                    type: "info",
+                    insert: "top",
+                    container: "top-right",
+                    animationIn: ["animated", "fadeIn"],
+                    animationOut: ["animated", "fadeOut"],
+                    dismiss: {
+                      duration: 2000,
+                      onScreen: true
+                    }
+                  });
             }
             if(response.data.statusCode === 403){
                 alert("Wrong Password")
+                store.addNotification({
+                    title: "Not Found",
+                    message: "Wrong Password",
+                    type: "info",
+                    insert: "top",
+                    container: "top-right",
+                    animationIn: ["animated", "fadeIn"],
+                    animationOut: ["animated", "fadeOut"],
+                    dismiss: {
+                      duration: 2000,
+                      onScreen: true
+                    }
+                  });
             }
             if(response.data.statusCode === 200){
+                store.addNotification({
+                    title: "Login",
+                    message: "Login Successfully",
+                    type: "success",
+                    insert: "top",
+                    container: "top-right",
+                    animationIn: ["animated", "fadeIn"],
+                    animationOut: ["animated", "fadeOut"],
+                    dismiss: {
+                      duration: 2000,
+                      onScreen: true
+                    }
+                  });
                 localStorage.setItem('tokn', response.data.token)
                 localStorage.setItem('usr', JSON.stringify(response.data.user))
                 window.location.href = "/index"
             }
+        }).catch(error => {
+            console.log(error)
+            store.addNotification({
+                title: "Login",
+                message: "Internal Server Error",
+                type: "info",
+                insert: "top",
+                container: "top-right",
+                animationIn: ["animated", "fadeIn"],
+                animationOut: ["animated", "fadeOut"],
+                dismiss: {
+                  duration: 2000,
+                  onScreen: true
+                }
+              });
         })
 
     }

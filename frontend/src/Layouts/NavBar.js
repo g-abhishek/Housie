@@ -1,14 +1,18 @@
-import React, { Component } from 'react'
+import React, { Component, useState, useEffect } from 'react'
 import { Button, Col, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Form, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, Nav, Navbar, NavbarBrand, NavItem, NavLink, Row, UncontrolledDropdown } from 'reactstrap'
 import {useForm} from 'react-hook-form'
 import axios from 'axios'
 import {store} from 'react-notifications-component'
+import { MDBDataTable } from 'mdbreact'
+import ShowAllGames from './NavbarComponents/ShowAllGames.js'
+import CreateGameForm from './NavbarComponents/CreateGameForm.js'
 
 export default class NavBar extends Component {
     constructor(props){
         super(props)
         this.state = {
-            createGameModal: false
+            createGameModal: false,
+            allGameModal: false,
         }
     }
 
@@ -22,6 +26,11 @@ export default class NavBar extends Component {
             createGameModal: !this.state.createGameModal
         })
     }
+    toggleAllGameModal = () => {
+        this.setState({
+            allGameModal: !this.state.allGameModal
+        })
+    }
 
 
     render() {
@@ -33,6 +42,9 @@ export default class NavBar extends Component {
                     <Nav>
                         <NavItem>
                             <NavLink className="cursor-pointer" onClick={this.toggleCreateGameModal}>Create Game</NavLink>
+                        </NavItem>
+                        <NavItem>
+                            <NavLink className="cursor-pointer" onClick={this.toggleAllGameModal}>Show All Games</NavLink>
                         </NavItem>
                         <UncontrolledDropdown nav inNavbar>
                             <DropdownToggle nav caret>
@@ -61,72 +73,17 @@ export default class NavBar extends Component {
                     </ModalBody>
                 </Modal>
 
+                <Modal isOpen={this.state.allGameModal} size="lg" backdrop={'static'} toggle={this.toggleAllGameModal}>
+                    <ModalHeader toggle={this.toggleAllGameModal}>All Games</ModalHeader>
+                    <ModalBody>
+                        <ShowAllGames />
+                    </ModalBody>
+                </Modal>
+
             </div>
         )
     }
 }
 
-function CreateGameForm(props){
-    const { register, handleSubmit, errors } = useForm()
 
-    const onSubmit = (data) => {
-        console.log(data)
-        axios.post(`http://localhost:3001/admin/game/create`, data).then(response => {
-            console.log(response)
-            // alert("Created")
-            props.toggleCreateGameModal()
-            store.addNotification({
-                title: "Created",
-                message: "Game Created Successfully",
-                type: "success",
-                insert: "top",
-                container: "top-right",
-                animationIn: ["animated", "fadeIn"],
-                animationOut: ["animated", "fadeOut"],
-                dismiss: {
-                  duration: 2000,
-                  onScreen: true
-                }
-              });
-        }).catch(error => {
-            console.log(error)
-        })
-        
-    }
 
-    return (
-        //required will no work , untill onsubmit line
-        <Form onSubmit={handleSubmit(onSubmit)}> 
-            <Row>
-                <Col>
-                    <FormGroup>
-                        <Label>Game Name</Label>
-                        <input type="text" className="form-control" name="name" id="name" placeholder="Game Name" ref={register({required:true})} autocomplete="off" />
-                        {errors.name && <p className="text-danger">Required</p> }
-                    </FormGroup>
-                </Col>
-            </Row>
-            <Row>
-                <Col md={6}>
-                    <FormGroup>
-                        <Label>Date</Label>
-                        <input type="date" className="form-control" name="date" id="date" placeholder="date" ref={register({required:true})} />
-                        {errors.date && <p className="text-danger">Required</p> }
-                    </FormGroup>
-                </Col>
-                <Col md={6}>
-                    <FormGroup>
-                        <Label>Time</Label>
-                        <input type="time" className="form-control" name="time" id="time" placeholder="Game Name" ref={register({required:true})} />
-                        {errors.time && <p className="text-danger">Required</p> }
-                    </FormGroup>
-                </Col>
-            </Row>
-            <Row>
-                <Col>
-                    <Button block color="success" outline type="submit">Create Game</Button>
-                </Col>
-            </Row>
-        </Form>
-    )
-}

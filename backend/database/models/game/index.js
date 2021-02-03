@@ -1,6 +1,7 @@
 import mongoose from '../../connect.js'
 
 const Users = new mongoose.Schema({
+    
     mobile: {
         type: Number,
         required: true,
@@ -25,6 +26,25 @@ const Users = new mongoose.Schema({
     timestamps: true
 })
 
+const wUsers = new mongoose.Schema({
+    
+    name: {
+        type: String,
+        required: true,
+    },
+    mobile: {
+        type: Number,
+        required: true,
+        index: true,
+    },
+    isWinner: {
+        type: Boolean,
+        default: false
+    }
+},{
+    timestamps: true
+})
+
 const Game = new mongoose.Schema({
     name: {
         type: String,
@@ -35,25 +55,21 @@ const Game = new mongoose.Schema({
         required: true
     },
     date: {
-        type: String,
+        type: Date,
+        required: true
+    },
+    gameDate: {
+        type: Date,
         required: true
     },
     users:  [ Users ],
     done: {
         type: Array,
     },
-    topLine: {
-        type: Array,
-    },
-    middleLine: {
-        type: Array,
-    },
-    bottomLine: {
-        type: Array,
-    },
-    fullHousie: {
-        type: Array,
-    },
+    topLine: [wUsers],
+    middleLine: [wUsers],
+    bottomLine: [wUsers],
+    fullHousie: [wUsers],
 },{
     timestamps: true
 })
