@@ -1,6 +1,7 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
+import moment from 'moment'
 
 import userRouter from './routes/user/index.js'
 import adminRouter from './routes/admin/index.js'
@@ -27,6 +28,11 @@ app.use(gameRouter)
 app.get('/', (req, res)=>{
     res.send("Welcome to housie")
 })
+app.post('/whatsapp', (req, res)=>{
+    console.log(req.body)
+})
+
+console.log(new Date(moment().add('minutes', 1)))
 
 app.listen(port, ()=>{
     console.log("server is up and running on port ", port)

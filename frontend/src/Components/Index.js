@@ -2,12 +2,13 @@ import axios from 'axios';
 import React, { Component, useState, useEffect } from 'react'
 import { store } from 'react-notifications-component';
 import { connect } from 'react-redux'
-import { Card, CardBody, Row, Col, Button } from 'reactstrap'
+import { Card, CardBody, Row, Col, Button, CardHeader, Table } from 'reactstrap'
 import NavBar from '../Layouts/NavBar';
+import ShowTable from './IndexComponents/ShowTable.js'
 
 import { MDBDataTable } from 'mdbreact'
 
-import { selectNumber } from '../Redux/Housie/Action'
+import { selectNumber, selectGame, fetchWinners } from '../Redux/Housie/Action'
 
 class Index extends Component {
     constructor(props) {
@@ -18,7 +19,8 @@ class Index extends Component {
             middleLine: [],
             bottomLine: [],
             fullHousie: [],
-            isDataReturned: false
+            isDataReturned: false,
+            tableComponent: "topLine",
         }
     }
 
@@ -26,6 +28,25 @@ class Index extends Component {
         if (!localStorage.getItem('tokn')) {
             window.location.href = "/login"
         }
+        this.fetchOngoingGame();
+    }
+
+    fetchOngoingGame = () => {
+
+        axios.get(`http://localhost:3001/admin/game/ongoing/`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("tokn")}`
+                }
+            }).then(response => {                
+                if (response.data.statusCode === 200) {
+                    let data = response.data.result
+                    this.props.selectGame(JSON.stringify({ gameId: data._id, gameName: data.name, gameDateTime: data.gameDate, numUsers: data.users.length, done: data.done, uniqueName: data.uniqueName }))
+                    this.props.fetchWinners(data._id)
+                }
+            }).catch(error => {
+                console.log(error)
+            })
     }
 
     handleButtonClick = (num) => {
@@ -76,55 +97,63 @@ class Index extends Component {
     }
 
 
-
-
-
     render() {
         return (
             <React.Fragment>
                 <NavBar />
                 <div className="container-fluid">
                     <div className="my-4">
-                        <div className="d-flex justify-content-between">
-                            <h5><b>Name:</b> {this.props.gameData.gameName}</h5>
-                            <h5><b>Date/Time:</b> {this.props.gameData.gameDateTime}</h5>
-                            <h5><b>Users:</b> {this.props.gameData.numUsers}</h5>
-                        </div>
+                        <Card className="shadow">
+                            <CardBody>
+                            <div className="d-flex justify-content-between">
+                                <h5><b>Name:</b> {this.props.gameData.gameName}</h5>
+                                <h5><b>Unique Name:</b> {this.props.gameData.uniqueName}</h5>
+                                <h5><b>Date/Time:</b> {this.props.gameData.gameDateTime}</h5>
+                                <h5><b>Users:</b> {this.props.gameData.numUsers}</h5>
+                            </div>
+                            </CardBody>
+                        </Card>
+                        
                         {this.props.gameData.gameId ?
+                            <Card className="shadow my-3">
+                                <CardBody>
 
-                            <Row className="my-3">
-                                <Col>
-                                    <Card className="shadow-sm">
-                                        <CardBody>
-                                            {
-                                                [...Array(99)].map((e, i) => {
-                                                    return (
-                                                        <Button className={"btn m-1 " + (this.props.dataArray.has(i + 1) ? "btn-success" : "btn-info")} key={i + 1} onClick={() => this.handleButtonClick(i + 1)} style={{ width: "3rem" }}>{i + 1}</Button>
-                                                    )
-                                                })
-                                            }
-                                        </CardBody>
-                                    </Card>
-                                </Col>
-                                <Col>
-                                    <Card className="shadow-sm">
-                                        <CardBody>
-                                            {
-                                                [...this.props.dataArray].map((item) => {
-                                                    return (
-                                                        <Button color="info" key={item} className="m-1" style={{ width: "3rem" }}>{item}</Button>
-                                                    )
-                                                })
-                                            }
-                                        </CardBody>
-                                    </Card>
-                                </Col>
-                            </Row>
+
+                                    <Row>
+                                        <Col>
+                                            <Card className="shadow-sm">
+                                                <CardBody>
+                                                    {
+                                                        [...Array(99)].map((e, i) => {
+                                                            return (
+                                                                <Button className={"btn m-1 " + (this.props.dataArray.has(i + 1) ? "btn-success" : "btn-info")} key={i + 1} onClick={() => this.handleButtonClick(i + 1)} style={{ width: "3rem" }}>{i + 1}</Button>
+                                                            )
+                                                        })
+                                                    }
+                                                </CardBody>
+                                            </Card>
+                                        </Col>
+                                        <Col>
+                                            <Card className="shadow-sm">
+                                                <CardBody>
+                                                    {
+                                                        [...this.props.dataArray].map((item) => {
+                                                            return (
+                                                                <Button color="info" key={item} className="m-1" style={{ width: "3rem" }}>{item}</Button>
+                                                            )
+                                                        })
+                                                    }
+                                                </CardBody>
+                                            </Card>
+                                        </Col>
+                                    </Row>
+                                </CardBody>
+                            </Card>
 
                             :
-                            <Card>
+                            <Card className="shadow my-3">
                                 <CardBody>
-                                    <h4>No Game is Selected Yet</h4>
+                                    <h4>No Game Started Yet</h4>
                                 </CardBody>
                             </Card>
                         }
@@ -132,45 +161,92 @@ class Index extends Component {
                     </div>
                     <div>
                         {this.props.gameData.gameId ?
-                            <Row>
-                                <Col md={3}>
+                            <Card className="shadow my-5">
+                                <CardBody>
+                                    <div className="d-flex justify-content-between h-100 my-3">
+                                        <div>
+                                            <Button style={{ width: "7rem" }} onClick={() => this.setState({ tableComponent: "topLine" })}>Top Line</Button>
+                                        </div>
+                                        <div>
+                                            <Button style={{ width: "7rem" }} onClick={() => this.setState({ tableComponent: "middleLine" })}>Middle Line</Button>
+                                        </div>
+                                        <div>
+                                            <Button style={{ width: "7rem" }} onClick={() => this.setState({ tableComponent: "bottomLine" })}>Bottom Line</Button>
+                                        </div>
+                                        <div>
+                                            <Button style={{ width: "7rem" }} onClick={() => this.setState({ tableComponent: "fullHousie" })}>Full Housie</Button>
+                                        </div>
 
-                                </Col>
-                                <Col md={9}>
-                                    <Row className="text-left">
-                                        <Col md={6}>
-                                            <Card>
-                                                <CardBody>
-                                                    <ShowTable type={"topLine"} gameId={this.props.gameData.gameId} />
-                                                </CardBody>
-                                            </Card>
+                                    </div>
+                                    <Row>
+                                        <Col md={7} className="text-left">
+                                            {this.state.tableComponent === "topLine" ?
+                                                <ShowTable type={"topLine"} gameId={this.props.gameData.gameId} />
+                                                : <></>}
+                                            {this.state.tableComponent === "middleLine" ?
+                                                <ShowTable type={"middleLine"} gameId={this.props.gameData.gameId} />
+                                                : <></>}
+                                            {this.state.tableComponent === "bottomLine" ?
+                                                <ShowTable type={"bottomLine"} gameId={this.props.gameData.gameId} />
+                                                : <></>}
+                                            {this.state.tableComponent === "fullHousie" ?
+                                                <ShowTable type={"fullHousie"} gameId={this.props.gameData.gameId} />
+                                                : <></>}
+                                            {/* <Row className="text-left">
+                                            
+                                            
+                                                
+                                            <Col md={6}>
+                                                <ShowTable type={"middleLine"} gameId={this.props.gameData.gameId} />   
+                                            </Col>
+                                            <Col md={6}>
+                                                <ShowTable type={"bottomLine"} gameId={this.props.gameData.gameId} />   
+                                            </Col>
+                                            <Col md={6}>
+                                                <ShowTable type={"fullHousie"} gameId={this.props.gameData.gameId} />
+                                            </Col>
+                                        </Row> */}
                                         </Col>
-                                        <Col md={6}>
-                                            <Card>
+                                        <Col md={5} className="text-left">
+                                            <Card className="shadow-sm">
+                                                <CardHeader>
+                                                    <h6>Winners</h6>
+                                                </CardHeader>
                                                 <CardBody>
-                                                    <ShowTable type={"middleLine"} gameId={this.props.gameData.gameId} />
+                                                    <Table bordered>
+                                                        <thead>
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>Users</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <th scope="row">Top Line</th>
+                                                                <td>{this.props.gameData.tLWinnerData !== "" ? this.props.gameData.tLWinnerData.mobile : ""}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row">Bottom Line</th>
+                                                                <td>{this.props.gameData.mLWinnerData !== "" ? this.props.gameData.mLWinnerData.mobile : ""}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row">Middle Line</th>
+                                                                <td>{this.props.gameData.bLWinnerData !== "" ? this.props.gameData.bLWinnerData.mobile : ""}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row">Full Housie</th>
+                                                                <td>{this.props.gameData.fHWinnerData !== "" ? this.props.gameData.fHWinnerData.mobile : ""}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </Table>
                                                 </CardBody>
                                             </Card>
-                                        </Col>
-                                        <Col md={6}>
-                                            <Card>
-                                                <CardBody>
-                                                    <ShowTable type={"bottomLine"} gameId={this.props.gameData.gameId} />
-                                                </CardBody>
-                                            </Card>
-                                        </Col>
-                                        <Col md={6}>
-                                            <Card>
-                                                <CardBody>
-                                                    <ShowTable type={"fullHousie"} gameId={this.props.gameData.gameId} />
-                                                </CardBody>
-                                            </Card>
+
                                         </Col>
                                     </Row>
-                                </Col>
-                            </Row>
 
-
+                                </CardBody>
+                            </Card>
                             : <></>}
                     </div>
                 </div>
@@ -188,102 +264,12 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        selectNumber: (num) => dispatch(selectNumber(num))
+        selectGame: (data) => dispatch(selectGame(data)),
+        selectNumber: (num) => dispatch(selectNumber(num)),
+        fetchWinners: (data) => dispatch(fetchWinners(data)),
     }
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Index);
 
 
-function ShowTable(props) {
-
-    const [data, setData] = useState({
-        completedUsers: [],
-        isDataReturned: false
-    })
-
-    let type = props.type
-
-    useEffect(() => {
-        fetchAllGame()
-    }, [0])
-
-    const fetchAllGame = () => {
-        axios.get(`http://localhost:3001/admin/game/${props.type}/${props.gameId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem("tokn")}`
-            }
-        }).then(response => {
-            if (response.data.statusCode === 200) {
-                let data = []
-                if (type === "topLine") {
-                    data = response.data.result.topLine
-                }
-                else if (type === "middleLine") {
-                    data = response.data.result.middleLine
-                }
-                else if (type === "bottomLine") {
-                    data = response.data.result.bottomLine
-                }
-                else if (type === "fullHousie") {
-                    data = response.data.result.fullHousie
-                }
-                console.log(data)
-
-                let rowsData = []
-                for (var i = 0; i < data.length; i++) {
-                    let rowItem = data[i]
-                    rowItem["playBtn"] = <Button id={i} className="btn btn-info py-0 px-3">Make Winner</Button>
-
-                    rowsData.push(rowItem)
-                }
-                console.log(rowsData)
-                setData({
-                    completedUsers: rowsData,
-                    isDataReturned: true
-                })
-            }
-
-        }).catch(error => {
-            console.log(error)
-        })
-    }
-
-
-
-    const columnData = [
-        {
-            label: 'Name',
-            field: 'name',
-            sort: 'asc',
-        },
-        {
-            label: 'Mobile',
-            field: 'mobile',
-            sort: 'asc',
-        },
-        {
-            label: 'Action',
-            field: 'playBtn',
-            sort: 'asc',
-        },
-    ]
-
-
-    return (
-        <React.Fragment>
-            <MDBDataTable
-                hover
-                bordered
-                entries={20}
-                striped
-                paging={false}
-                data={{
-                    columns: columnData,
-                    rows: data.completedUsers
-                }}
-            />
-
-        </React.Fragment>
-    )
-}

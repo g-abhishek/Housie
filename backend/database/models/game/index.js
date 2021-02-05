@@ -1,7 +1,10 @@
 import mongoose from '../../connect.js'
 
 const Users = new mongoose.Schema({
-    
+    name: {
+        type: String,
+        required: true,
+    },
     mobile: {
         type: Number,
         required: true,
@@ -16,7 +19,8 @@ const Users = new mongoose.Schema({
         default: []
     },
     wrongInput: {
-        type: Array,
+        type: Number,
+        default: 0
     },
     isTerminated: {
         type: Boolean,
@@ -48,14 +52,22 @@ const wUsers = new mongoose.Schema({
 const Game = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+    },
+    uniqueName: {
+        type: String,
+        required: true,
+    },
+    isOnGoing:{
+        type: Boolean,
+        default: false
     },
     time: {
         type: String,
         required: true
     },
     date: {
-        type: Date,
+        type: String,
         required: true
     },
     gameDate: {
