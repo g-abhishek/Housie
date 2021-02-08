@@ -2,8 +2,9 @@ import Game from '../../../database/models/game/index.js'
 import User from '../../../database/models/users/index.js'
 import tambola from 'tambola-generator'
 import mongoose from '../../../database/connect.js'
-import cron from 'node-cron'
+import async from 'async'
 import twilio from 'twilio';
+import users from '../../../database/models/users/index.js'
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioNumber = process.env.TWILIO_NUMBER;
@@ -70,6 +71,64 @@ export function fetchAllGame(req, res) {
         })
     })
 }
+
+export function paginatedGames(req, res) {
+    if(!req.query.items || !req.query.page){
+        return res.send({
+            statusCode: 400,
+            message: "please provide page and items"
+        })
+    }
+    async.parallel({
+        allGamesCount: function(callback){
+            Game.find({ gameDate: {$gte: new Date()} }).countDocuments().exec(callback)
+        },
+        paginatedGames: function(callback){
+            Game.aggregate([
+                {
+                    $match: {
+                        gameDate:{
+                            $gte : new Date()
+                        }
+                    }
+                },
+                {
+                    $project : {
+                        _id: 1,
+                        isOnGoing: 1,
+                        name: 1,
+                        uniqueName: 1,
+                        gameDate: 1,
+                        done: 1,
+                        createdAt: 1,
+                        users: {
+                            $size: "$users"
+                        }
+                    }
+                },
+                {
+                    $skip : req.query.items * (req.query.page-1)
+                },
+                {
+                    $limit : parseInt(req.query.items)
+                }
+            ]).exec(callback)
+        }
+    }, function(error, result){
+        if(error){
+            console.log(error.message)
+            return res.status(500).send(error.message)
+        }else{
+            return res.send({
+                statusCode: 200,
+                gamesCount: result.allGamesCount,
+                paginatedGames: result.paginatedGames
+            })
+        }
+    } )
+}
+
+
 export function startGame(req, res) {
     console.log("start", req.body)
     Game.findOneAndUpdate(
@@ -271,6 +330,8 @@ export function fetchWinnerUsers(req, res) {
         return res.status(500).send(error.message)
     })
 }
+
+
 
 
 export function announceTLWinner(req, res) {

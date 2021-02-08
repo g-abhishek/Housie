@@ -5,12 +5,30 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f3ef !important;
+  background-color: #212529 !important;
+  color: white !important;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.card, .modal-content, .dropdown-menu{
+  background-color: #24252f !important;
+} 
+button{
+  color: white !important;
+}
+
+input{
+  background-color: #2f303a !important;
+  border: 0 !important;
+  color: white !important;
+}
+.table{
+  background-color: #2f303a !important;
+  color: white !important;
 }
 
 .cursor-pointer{

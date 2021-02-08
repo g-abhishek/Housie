@@ -17,12 +17,13 @@ class ShowAllGames extends Component {
             isAllGamesReturned: false,
             activeGameId: this.props.gameData.gameId,
             activePage: 1,
-            numOfItems: 5
+            numOfItems: 5,
+            documentCounts: 0
         }
     }
 
     componentWillMount() {
-        this.fetchAllGame()
+        this.fetchPaginatedGame()
     }
 
     handleReduxDispatch = (data) => {
@@ -233,6 +234,7 @@ class ShowAllGames extends Component {
         this.setState({
             activePage: pageNumber,            
         })
+        this.fetchPaginatedGame(pageNumber)
     }
 
     
@@ -314,8 +316,8 @@ class ShowAllGames extends Component {
 
 
 
-    fetchAllGame = () => {
-        axios.get(`http://localhost:3001/admin/game/fetch/all`, {
+    fetchPaginatedGame = (pageNum = 1) => {
+        axios.get(`http://localhost:3001/admin/game/paginated/?page=${pageNum}&items=${this.state.numOfItems}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem("tokn")}`
             }
@@ -323,16 +325,18 @@ class ShowAllGames extends Component {
             console.log(response.data)
             if (response.data.statusCode === 200) {
                 let rowsData = []
-                for (var i = 0; i < response.data.result.length; i++) {
-                    let rowItem = response.data.result[i]
-                    rowItem["gameDate"] = `${new Date(response.data.result[i].gameDate)}`.substr(0, 25)
-                    rowItem["usersCount"] = response.data.result[i].users.length
+                for (var i = 0; i < response.data.paginatedGames.length; i++) {
+                    let rowItem = response.data.paginatedGames[i]
+                    console.log(rowItem)
+                    rowItem["gameDate"] = `${new Date(response.data.paginatedGames[i].gameDate)}`.substr(0, 25)
+                    rowItem["usersCount"] = response.data.paginatedGames[i].users
                     rowItem["playBtn"] = <Button id={rowItem._id} onClick={() => this.handleReduxDispatch({ gameId: rowItem._id, gameName: rowItem.name, gameDateTime: rowItem.gameDate, numUsers: rowItem.usersCount, done: rowItem.done, uniqueName: rowItem.uniqueName })} className="btn btn-danger py-0 px-3">{this.state.activeGameId === rowItem._id ? "Stop" : "Start"}</Button>
 
                     rowsData.push(rowItem)
                 }
                 this.setState({
                     allGames: rowsData,
+                    documentCounts: response.data.gamesCount,
                     isAllGamesReturned: true
                 })
             }
@@ -375,11 +379,11 @@ class ShowAllGames extends Component {
                 {this.state.isAllGamesReturned ?
                     <div>
                         <MDBDataTable
-                            hover
+                            
                             bordered
-                            entries={2}
-                            small
+                            entries={this.state.numOfItems}                            
                             striped
+                            paging={false}
                             data={{
                                 columns: columnData,
                                 rows: this.state.allGames
@@ -401,94 +405,6 @@ class ShowAllGames extends Component {
     }
 
 }
-
-// function ShowAllGames(props){
-//     const [games, setAllGames] = useState({
-//         allGames: [],
-//         isAllGamesReturned: false
-//     })
-//     const [activeGameId, setActiveGameId] = useState(props.gameData.gameId)
-
-//     useEffect(() => {
-//         fetchAllGame()
-//     }, [0])
-
-//     const handleReduxDispatch =(data)=> {
-//         props.selectGame(JSON.stringify(data))
-//         props.fetchWinners(data.gameId)
-//         document.getElementById(data.gameId).innerHTML = "Started"
-//     }
-
-//     const fetchAllGame = () => {
-//         axios.get(`http://localhost:3001/admin/game/fetch/all`,{
-//             headers: {
-//                 'Authorization' : `Bearer ${localStorage.getItem("tokn")}`
-//             }
-//         }).then(response => {
-//             if(response.data.statusCode === 200){
-//                 let rowsData = []
-//                 for (var i = 0; i < response.data.result.length; i++) {
-//                     let rowItem = response.data.result[i]
-//                     rowItem["gameDate"] = `${new Date(response.data.result[i].gameDate)}`.substr(0, 25)
-//                     rowItem["usersCount"] = response.data.result[i].users.length
-//                     rowItem["playBtn"] = <Button id={rowItem._id} onClick={() => handleReduxDispatch({gameId: rowItem._id, gameName: rowItem.name, gameDateTime: rowItem.gameDate, numUsers: rowItem.usersCount, done: rowItem.done})} className="btn btn-danger py-0 px-3">{activeGameId === rowItem._id ? "Started": "Start"}</Button>
-
-//                     rowsData.push(rowItem)
-//                 }
-//                 setAllGames({
-//                     allGames: rowsData,
-//                     isAllGamesReturned: true
-//                 })
-//             }
-
-//         }).catch(error => {
-//             console.log(error)
-//         })
-//     }
-
-
-//     const columnData = [
-//         {
-//             label: 'Name',
-//             field: 'name',
-//             sort: 'asc',
-//         },
-//         {
-//             label: 'Game Date/Time',
-//             field: 'gameDate',
-//             sort: 'asc',
-//         },
-//         {
-//             label: 'Users',
-//             field: 'usersCount',
-//             sort: 'asc',
-//         },
-//         {
-//             label: 'Action',
-//             field: 'playBtn',
-//             sort: 'asc',
-//         },
-//     ]   
-
-
-//     return (
-//         <React.Fragment>
-//             {games.isAllGamesReturned?
-//                 <MDBDataTable
-//                     hover
-//                     bordered
-//                     entries={20}
-//                     striped
-//                     paging={false}
-//                     data={{
-//                         columns: columnData,
-//                         rows: games.allGames
-//                     }}
-//                 />
-//             :<></>}
-//         </React.Fragment>
-//     )
-// }
 
 const mapStateToProps = (state) => {
     return {

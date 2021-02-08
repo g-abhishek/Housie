@@ -1,5 +1,5 @@
 import express from 'express'
-import {createGame, joinGame, appearedNumbers, fetchAllGame, PlayGame, completedUsers, completedTopLineUsers, completedMiddleLineUsers, completedBottomLineUsers, completedFullHousieUsers, announceTLWinner, announceMLWinner, announceBLWinner, announceFHWinner, fetchWinnerUsers, senSms, startGame, stopGame, onGoingGame, playGameWhatsapp} from '../../controller/game/index.js'
+import {createGame, joinGame, appearedNumbers, fetchAllGame, PlayGame, completedUsers, completedTopLineUsers, completedMiddleLineUsers, completedBottomLineUsers, completedFullHousieUsers, announceTLWinner, announceMLWinner, announceBLWinner, announceFHWinner, fetchWinnerUsers, senSms, startGame, stopGame, onGoingGame, playGameWhatsapp, paginatedGames} from '../../controller/game/index.js'
 import { authorizer } from '../../helper/authorizer/index.js'
 
 import twilio from 'twilio';
@@ -26,6 +26,7 @@ gameRouter.get('/admin/game/middleLine/:gid', completedMiddleLineUsers)
 gameRouter.get('/admin/game/bottomLine/:gid', completedBottomLineUsers)
 gameRouter.get('/admin/game/fullHousie/:gid', completedFullHousieUsers)
 gameRouter.get('/admin/game/fetch/all', authorizer(), fetchAllGame)
+gameRouter.get('/admin/game/paginated/', paginatedGames)
 
 gameRouter.put('/admin/game/winner/topLine/', authorizer(), announceTLWinner)
 gameRouter.put('/admin/game/winner/middleLine/', authorizer(), announceMLWinner)

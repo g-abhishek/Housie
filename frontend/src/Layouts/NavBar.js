@@ -36,18 +36,18 @@ export default class NavBar extends Component {
     render() {
         return (
             <div>
-                <Navbar color="dark" dark className="border-bottom">
+                <Navbar color="dark" dark>
                     <NavbarBrand href="/index">Housie</NavbarBrand>
                     {localStorage.getItem('tokn')?
                     <Nav>
                         <NavItem>
-                            <NavLink className="cursor-pointer" onClick={this.toggleCreateGameModal}>Create Game</NavLink>
+                            <NavLink className="cursor-pointer text-white" onClick={this.toggleCreateGameModal}>Create Game</NavLink>
                         </NavItem>
                         <NavItem>
-                            <NavLink className="cursor-pointer" onClick={this.toggleAllGameModal}>Show All Games</NavLink>
+                            <NavLink className="cursor-pointer text-white" onClick={this.toggleAllGameModal}>Show All Games</NavLink>
                         </NavItem>
                         <UncontrolledDropdown nav inNavbar>
-                            <DropdownToggle nav caret>
+                            <DropdownToggle nav caret className="text-white">
                                 Profile
                             </DropdownToggle>
                             <DropdownMenu right>

@@ -19,10 +19,10 @@ function ShowTable(props) {
     let type = props.type
 
     useEffect(() => {
-        fetchAllGame()
+        fetchCompletedUsers()
     }, [0])
 
-    const fetchAllGame = () => {
+    const fetchCompletedUsers = () => {
         
         axios.get(`http://localhost:3001/admin/game/${props.type}/${props.gameId}`, {
             headers: {
@@ -184,8 +184,7 @@ function ShowTable(props) {
                 </CardHeader>
                 <CardBody>
                     {data.isDataReturned?
-                    <MDBDataTable
-                        hover
+                    <MDBDataTable                        
                         bordered
                         entries={5}
                         striped
